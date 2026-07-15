@@ -1,0 +1,51 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+venv/
+.venv/
+
+# Build output and caches
+.next/
+.next.stale-*/
+frontend/.next/
+frontend/.next.stale-*/
+dist/
+build/
+out/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data and generated artifacts
+*.db
+*.sqlite
+*.sqlite3
+backend/data/audit/*.jsonl
+backend/data/runtime/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.backup
+backend/app/auth_restore.py
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
