@@ -1,0 +1,47 @@
+[
+  {
+    "id": "AuthServer-03",
+    "label": "AuthServer-03",
+    "type": "ITServer",
+    "domain": "IT",
+    "public_safety_impact": "medium",
+    "human_dependency": "medium",
+    "mission_criticality": 0.82
+  },
+  {
+    "id": "API-Gateway-01",
+    "label": "API Gateway",
+    "type": "ITServer",
+    "domain": "IT",
+    "public_safety_impact": "medium",
+    "human_dependency": "medium",
+    "mission_criticality": 0.76
+  },
+  {
+    "id": "Historian-01",
+    "label": "Historian Server",
+    "type": "ITOTBridge",
+    "domain": "IT_OT_BRIDGE",
+    "public_safety_impact": "high",
+    "human_dependency": "medium",
+    "mission_criticality": 0.92
+  },
+  {
+    "id": "SCADA-HMI-07",
+    "label": "SCADA-HMI-07",
+    "type": "OTDevice",
+    "domain": "OT",
+    "public_safety_impact": "high",
+    "human_dependency": "high",
+    "mission_criticality": 0.96
+  },
+  {
+    "id": "Workstation-22",
+    "label": "Operator Workstation",
+    "type": "ITWorkstation",
+    "domain": "IT",
+    "public_safety_impact": "low",
+    "human_dependency": "low",
+    "mission_criticality": 0.38
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "policy_id": "hospital",
+  "label": "AIIMS-like Hospital Network",
+  "sector": "hospital",
+  "criticality_weights": {
+    "operational_importance": 0.30,
+    "data_sensitivity": 0.20,
+    "connectivity_risk": 0.15,
+    "safety_impact": 0.25,
+    "recovery_difficulty": 0.10
+  },
+  "auto_execute_thresholds": {
+    "IT": 0.95,
+    "IT_OT_BRIDGE": 1.0,
+    "OT": 1.0
+  },
+  "ot_disruption_allowed": false,
+  "preferred_response": "patient_continuity_first"
+}

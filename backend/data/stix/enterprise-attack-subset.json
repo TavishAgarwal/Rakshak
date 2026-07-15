@@ -1,0 +1,103 @@
+{
+  "type": "bundle",
+  "id": "bundle--234c9c1b-fcd2-4328-98e3-47cb192fb59c",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1566.001",
+      "name": "Spearphishing Attachment",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "initial-access"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1566.001"}],
+      "x_rakshak_required_edge_types": ["DATA_FLOW"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1204.002",
+      "name": "Malicious File",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "execution"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1204.002"}],
+      "x_rakshak_required_edge_types": []
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1018",
+      "name": "Remote System Discovery",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "discovery"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1018"}],
+      "x_rakshak_required_edge_types": ["LATERAL_MOVEMENT", "DATA_FLOW"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1003.001",
+      "name": "LSASS Memory",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "credential-access"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1003.001"}],
+      "x_rakshak_required_edge_types": ["AUTHENTICATES_TO"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1021.001",
+      "name": "Remote Desktop Protocol",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "lateral-movement"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1021.001"}],
+      "x_rakshak_required_edge_types": ["LATERAL_MOVEMENT"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1021.002",
+      "name": "SMB/Windows Admin Shares",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "lateral-movement"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1021.002"}],
+      "x_rakshak_required_edge_types": ["LATERAL_MOVEMENT"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1021",
+      "name": "Remote Services",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "lateral-movement"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1021"}],
+      "x_rakshak_required_edge_types": ["DATA_FLOW", "FIELDBUS_LINK"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1136.001",
+      "name": "Local Account",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "persistence"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1136.001"}],
+      "x_rakshak_required_edge_types": []
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1083",
+      "name": "File and Directory Discovery",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "discovery"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1083"}],
+      "x_rakshak_required_edge_types": ["ACCESSES"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1005",
+      "name": "Data from Local System",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "collection"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1005"}],
+      "x_rakshak_required_edge_types": ["ACCESSES", "DATA_FLOW"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T1046",
+      "name": "Network Service Discovery",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "discovery"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T1046"}],
+      "x_rakshak_required_edge_types": ["DATA_FLOW"]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--T0831",
+      "name": "Manipulation of Control",
+      "kill_chain_phases": [{"kill_chain_name": "mitre-attack", "phase_name": "impact"}],
+      "external_references": [{"source_name": "mitre-attack", "external_id": "T0831"}],
+      "x_rakshak_required_edge_types": ["CONTROLS"]
+    }
+  ]
+}

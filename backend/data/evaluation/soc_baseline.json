@@ -1,0 +1,7 @@
+{
+  "baseline_soc_mttd_hours": 504.0,
+  "baseline_soc_mttr_hours": 72.0,
+  "operational_seconds_per_replay_second": 120,
+  "detection_threshold": 0.65,
+  "methodology": "RAKSHAK MTTD is derived by replaying the scripted IT-to-OT incident until a fused belief crosses threshold. MTTR is derived from remaining replay time plus executable playbook latency. SOC baseline is an explicit comparison assumption."
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "id": "CERT-IN-CNI-2026-001",
+    "title": "Targeted phishing and credential theft against CNI operators",
+    "sector": "power",
+    "published": "2026-01-18",
+    "domains": ["IT"],
+    "cves": ["CVE-2025-53770"],
+    "techniques": ["T1566.001", "T1003.001", "T1021.001"],
+    "scorer_indicators": ["identity", "credential", "process", "network"],
+    "source_refs": [
+      {"label": "CERT-In advisory mirror", "url": "https://www.cert-in.org.in/"},
+      {"label": "MITRE ATT&CK", "url": "https://attack.mitre.org/"}
+    ],
+    "recommended_mitigation": "Revoke active sessions, isolate compromised workstation only after dependency check, and rotate privileged credentials.",
+    "india_context": "Indian power-sector operator with legacy Windows endpoints and a narrow IT-to-OT gateway dependency."
+  },
+  {
+    "id": "CERT-IN-CNI-2026-002",
+    "title": "Hospital ransomware precursors after phishing compromise",
+    "sector": "hospital",
+    "published": "2026-02-07",
+    "domains": ["IT"],
+    "cves": ["CVE-2025-24813"],
+    "techniques": ["T1566.001", "T1083", "T1005"],
+    "scorer_indicators": ["identity", "credential", "dns", "network"],
+    "source_refs": [
+      {"label": "CERT-In advisory mirror", "url": "https://www.cert-in.org.in/"},
+      {"label": "AIIMS-like continuity scenario", "url": "local://backend/data/threat_intel/india_cni_scenarios.json"}
+    ],
+    "recommended_mitigation": "Prioritize service continuity, disable compromised accounts, and preserve clinical system access.",
+    "india_context": "AIIMS-like hospital continuity scenario where isolation must not interrupt patient care."
+  },
+  {
+    "id": "CERT-IN-CNI-2026-003",
+    "title": "Exam-board data exfiltration and cloud API enumeration",
+    "sector": "exam_board",
+    "published": "2026-03-12",
+    "domains": ["IT"],
+    "cves": ["CVE-2025-29927"],
+    "techniques": ["T1083", "T1005", "T1021.002"],
+    "scorer_indicators": ["cloud_api", "network", "process"],
+    "source_refs": [
+      {"label": "CERT-In advisory mirror", "url": "https://www.cert-in.org.in/"},
+      {"label": "CBSE-like exam integrity scenario", "url": "local://backend/data/threat_intel/india_cni_scenarios.json"}
+    ],
+    "recommended_mitigation": "Block suspicious API tokens, snapshot evidence, and lock bulk export paths.",
+    "india_context": "CBSE-like public examination data scenario with executive impact from data integrity loss."
+  },
+  {
+    "id": "CERT-IN-CNI-2026-004",
+    "title": "OT historian gateway abuse and unsafe PLC command attempts",
+    "sector": "power",
+    "published": "2026-04-03",
+    "domains": ["OT", "IT+OT"],
+    "cves": ["CVE-2025-1974"],
+    "techniques": ["T1046", "T1021", "T0831"],
+    "scorer_indicators": ["ot_physics", "network", "cloud_api"],
+    "source_refs": [
+      {"label": "CERT-In advisory mirror", "url": "https://www.cert-in.org.in/"},
+      {"label": "Power-grid degrade-before-isolate scenario", "url": "local://backend/data/threat_intel/india_cni_scenarios.json"}
+    ],
+    "recommended_mitigation": "Increase passive OT monitoring, alert operators, move to degraded mode, and require approval before gateway isolation.",
+    "india_context": "Power-grid IT-to-OT bridge pivot with end-of-life control infrastructure constraints."
+  }
+]

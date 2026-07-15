@@ -1,0 +1,19 @@
+{
+  "policy_id": "power_grid",
+  "label": "Indian Power Grid CNI",
+  "sector": "power",
+  "criticality_weights": {
+    "operational_importance": 0.25,
+    "data_sensitivity": 0.10,
+    "connectivity_risk": 0.20,
+    "safety_impact": 0.30,
+    "recovery_difficulty": 0.15
+  },
+  "auto_execute_thresholds": {
+    "IT": 0.9,
+    "IT_OT_BRIDGE": 1.0,
+    "OT": 1.0
+  },
+  "ot_disruption_allowed": false,
+  "preferred_response": "degrade_before_isolate"
+}

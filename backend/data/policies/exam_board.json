@@ -1,0 +1,19 @@
+{
+  "policy_id": "exam_board",
+  "label": "CBSE-like Exam Board",
+  "sector": "exam_board",
+  "criticality_weights": {
+    "operational_importance": 0.15,
+    "data_sensitivity": 0.40,
+    "connectivity_risk": 0.20,
+    "safety_impact": 0.05,
+    "recovery_difficulty": 0.20
+  },
+  "auto_execute_thresholds": {
+    "IT": 0.82,
+    "IT_OT_BRIDGE": 0.95,
+    "OT": 1.0
+  },
+  "ot_disruption_allowed": false,
+  "preferred_response": "data_integrity_first"
+}

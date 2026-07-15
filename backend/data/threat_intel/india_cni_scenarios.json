@@ -1,0 +1,29 @@
+[
+  {
+    "id": "aiims_like_hospital",
+    "name": "AIIMS-like hospital service disruption",
+    "org_id": "national-health-cni",
+    "facility_id": "hospital-delhi-01",
+    "sector": "hospital",
+    "business_impact": "Protect patient-care continuity while containing ransomware precursors.",
+    "default_policy": "hospital"
+  },
+  {
+    "id": "cbse_like_exam_board",
+    "name": "CBSE-like exam data compromise",
+    "org_id": "national-exam-board",
+    "facility_id": "exam-cloud-01",
+    "sector": "exam_board",
+    "business_impact": "Protect exam data confidentiality and integrity during cloud API abuse.",
+    "default_policy": "exam_board"
+  },
+  {
+    "id": "power_grid_ot_pivot",
+    "name": "Power-grid IT-to-OT pivot",
+    "org_id": "national-grid-cni",
+    "facility_id": "grid-west-01",
+    "sector": "power",
+    "business_impact": "Maintain grid operations in degraded mode while blocking unsafe OT actions.",
+    "default_policy": "power_grid"
+  }
+]

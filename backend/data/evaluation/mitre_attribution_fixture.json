@@ -1,0 +1,110 @@
+[
+  {
+    "id": "case-001",
+    "expected_technique": "T1566.001",
+    "source_node": "external",
+    "target_node": "app-email-01",
+    "graph_domain": "IT",
+    "event_type": "spearphishing_delivery",
+    "evidence": "spearphishing attachment delivered to plant operator via email gateway"
+  },
+  {
+    "id": "case-002",
+    "expected_technique": "T1204.002",
+    "source_node": "usr-operator-01",
+    "target_node": "ep-ws-01",
+    "graph_domain": "IT",
+    "event_type": "malicious_file_execution",
+    "evidence": "operator launched malicious file from weaponized attachment"
+  },
+  {
+    "id": "case-003",
+    "expected_technique": "T1018",
+    "source_node": "ep-ws-01",
+    "target_node": "ep-srv-01",
+    "graph_domain": "IT",
+    "event_type": "remote_system_discovery",
+    "evidence": "remote system discovery across corporate segment before lateral movement"
+  },
+  {
+    "id": "case-004",
+    "expected_technique": "T1003.001",
+    "source_node": "usr-admin-01",
+    "target_node": "ep-srv-01",
+    "graph_domain": "IT",
+    "event_type": "credential_dump",
+    "evidence": "LSASS memory credential dump observed on domain controller path"
+  },
+  {
+    "id": "case-005",
+    "expected_technique": "T1021.001",
+    "source_node": "ep-ws-01",
+    "target_node": "ep-srv-01",
+    "graph_domain": "IT",
+    "event_type": "lateral_movement_rdp",
+    "evidence": "RDP remote desktop lateral movement to domain controller"
+  },
+  {
+    "id": "case-006",
+    "expected_technique": "T1021.002",
+    "source_node": "ep-srv-01",
+    "target_node": "ep-srv-02",
+    "graph_domain": "IT",
+    "event_type": "lateral_movement_smb",
+    "evidence": "SMB Windows admin shares lateral movement to file server"
+  },
+  {
+    "id": "case-007",
+    "expected_technique": "T1136.001",
+    "source_node": "ep-srv-01",
+    "target_node": "ep-srv-01",
+    "graph_domain": "IT",
+    "event_type": "persistence_account",
+    "evidence": "new local account created for persistence"
+  },
+  {
+    "id": "case-008",
+    "expected_technique": "T1083",
+    "source_node": "ep-ws-01",
+    "target_node": "app-erp-01",
+    "graph_domain": "IT",
+    "event_type": "file_discovery",
+    "evidence": "file and directory discovery on ERP share"
+  },
+  {
+    "id": "case-009",
+    "expected_technique": "T1005",
+    "source_node": "app-erp-01",
+    "target_node": "api-historian-01",
+    "graph_domain": "IT",
+    "event_type": "local_data_collection",
+    "evidence": "data from local system collected before exfiltration"
+  },
+  {
+    "id": "case-010",
+    "expected_technique": "T1046",
+    "source_node": "api-historian-01",
+    "target_node": "bridge-historian-01",
+    "graph_domain": "IT",
+    "event_type": "network_service_discovery",
+    "evidence": "network service discovery against historian gateway"
+  },
+  {
+    "id": "case-011",
+    "expected_technique": "T1021",
+    "source_node": "bridge-historian-01",
+    "target_node": "scada-srv-01",
+    "graph_domain": "OT",
+    "event_type": "remote_services_ot_pivot",
+    "evidence": "remote services over fieldbus link used for IT to OT pivot"
+  },
+  {
+    "id": "case-012",
+    "expected_technique": "T0831",
+    "source_node": "scada-srv-01",
+    "target_node": "plc-turbine-01",
+    "graph_domain": "OT",
+    "event_type": "ot_control_manipulation",
+    "evidence": "manipulation of control command attempted against turbine PLC"
+  }
+]

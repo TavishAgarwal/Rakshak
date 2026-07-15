@@ -1,0 +1,20 @@
+[
+  {"playbook": "endpoint_containment", "step": "edr-isolate", "status": "executed"},
+  {"playbook": "endpoint_containment", "step": "iam-revoke", "status": "executed"},
+  {"playbook": "endpoint_containment", "step": "firewall-block", "status": "executed"},
+  {"playbook": "endpoint_containment", "step": "owner-notify", "status": "executed"},
+  {"playbook": "credential_compromise", "step": "iam-revoke", "status": "executed"},
+  {"playbook": "credential_compromise", "step": "siem-case", "status": "executed"},
+  {"playbook": "file_quarantine", "step": "edr-hash-block", "status": "executed"},
+  {"playbook": "file_quarantine", "step": "siem-case", "status": "executed"},
+  {"playbook": "file_quarantine", "step": "analyst-approve-quarantine", "status": "requires_approval"},
+  {"playbook": "ot_safe_response", "step": "ot-monitoring", "status": "executed"},
+  {"playbook": "ot_safe_response", "step": "operator-alert", "status": "executed"},
+  {"playbook": "ot_safe_response", "step": "gateway-rule-approval", "status": "requires_approval"},
+  {"playbook": "ot_disruptive_action", "step": "ot-shutdown-plc", "status": "blocked"},
+  {"playbook": "soc_alert", "step": "siem-case", "status": "executed"},
+  {"playbook": "soc_alert", "step": "pager-duty", "status": "executed"},
+  {"playbook": "ioc_block", "step": "firewall-block", "status": "executed"},
+  {"playbook": "ioc_block", "step": "siem-ioc", "status": "executed"},
+  {"playbook": "monitoring", "step": "edr-telemetry", "status": "executed"}
+]
