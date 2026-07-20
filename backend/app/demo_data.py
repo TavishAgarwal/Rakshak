@@ -488,14 +488,18 @@ def init_demo_db(reset: bool = False, db_path: Path = DB_PATH) -> None:
 
         with open(ENTITIES_FILE, "r", encoding="utf-8") as f:
             entities = json.load(f)
-        conn.executemany(
-            """
-            INSERT INTO entities
-            (id, label, type, domain, public_safety_impact, human_dependency, mission_criticality)
-            VALUES (:id, :label, :type, :domain, :public_safety_impact, :human_dependency, :mission_criticality)
-            """,
-            entities,
-        )
+        try:
+            conn.executemany(
+                """
+                INSERT INTO entities
+                (id, label, type, domain, public_safety_impact, human_dependency, mission_criticality)
+                VALUES (:id, :label, :type, :domain, :public_safety_impact, :human_dependency, :mission_criticality)
+                """,
+                entities,
+            )
+        except sqlite3.IntegrityError:
+            # Another process/thread has already seeded the database concurrently
+            return
 
         with open(EVENTS_FILE, "r", encoding="utf-8", newline="") as f:
             rows = [_coerce(row) for row in csv.DictReader(f)]
