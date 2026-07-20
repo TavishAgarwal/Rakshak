@@ -1,0 +1,9 @@
+{
+  "nodes": 85000,
+  "edges": 119813,
+  "peak_memory_mb": 114.32,
+  "build_time_sec": 0.69,
+  "path_queries": 5000,
+  "avg_latency_ms": 0.02,
+  "paths_found": 0
+}
