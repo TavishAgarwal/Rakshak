@@ -1808,3 +1808,57 @@ async def get_api_audit(entity_id: str = None, _: dict = Depends(require_analyst
 async def verify_audit(_: dict = Depends(require_analyst)) -> dict[str, Any]:
     """Cryptographically verify the response agent audit chain."""
     return verify_audit_chain()
+
+
+@app.get("/api/vulnerabilities/prioritized")
+async def get_prioritized_vulnerabilities(_: dict = Depends(require_viewer)) -> dict[str, Any]:
+    """Return the narrow vulnerability-priority panel data."""
+    return {
+        "top_actions": [
+            {
+                "id": "vuln-001",
+                "asset": "ep-ws-01",
+                "cve": "CVE-2024-21412",
+                "priority_score": 98.0,
+                "components": {
+                    "asset_criticality": 0.9,
+                    "cvss": 9.8,
+                    "known_exploited": 1.5,
+                    "exposure": 0.8
+                },
+                "action": "Patch Windows Defender SmartScreen",
+                "rationale": "High criticality IT asset bridging to OT segment with known-exploited CISA KEV vulnerability.",
+                "mission_service": "Grid Control IT Bridge"
+            },
+            {
+                "id": "vuln-002",
+                "asset": "plc-turbine-01",
+                "cve": "CVE-2023-34362",
+                "priority_score": 92.0,
+                "components": {
+                    "asset_criticality": 1.0,
+                    "cvss": 9.8,
+                    "known_exploited": 1.0,
+                    "exposure": 0.2
+                },
+                "action": "Apply vendor firmware update 4.1.2",
+                "rationale": "Mission-critical OT controller with RCE vulnerability. Low network exposure mitigates risk slightly.",
+                "mission_service": "Turbine Primary Controller"
+            },
+            {
+                "id": "vuln-003",
+                "asset": "fw-ext-01",
+                "cve": "CVE-2024-3400",
+                "priority_score": 88.0,
+                "components": {
+                    "asset_criticality": 0.8,
+                    "cvss": 10.0,
+                    "known_exploited": 1.5,
+                    "exposure": 1.0
+                },
+                "action": "Disable device telemetry or apply hotfix",
+                "rationale": "External facing firewall with active zero-day exploitation. High exposure requires immediate mitigation.",
+                "mission_service": "Perimeter Defense"
+            }
+        ]
+    }

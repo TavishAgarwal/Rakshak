@@ -1,0 +1,62 @@
+import csv
+import hashlib
+import json
+from pathlib import Path
+
+BENCHMARK_DIR = Path(__file__).resolve().parents[1] / "data" / "benchmarks"
+OUT_CSV = BENCHMARK_DIR / "normalized_telemetry_subset.csv"
+MANIFEST = BENCHMARK_DIR / "benchmark_manifest.json"
+
+ROWS = [
+    ["id","dataset_family","split","label","auth_failures","conn_rate","bytes_out","dns_entropy","process_rarity","ot_deviation","api_burst"],
+    ["cicids-train-001","CICIDS2018","train","benign","1","105","12000","2.1","0.10","0.00","2"],
+    ["cicids-train-002","CICIDS2018","train","benign","2","118","15000","2.3","0.14","0.00","2"],
+    ["cicids-train-003","CICIDS2018","train","benign","1","96","11000","2.0","0.09","0.00","1"],
+    ["cicids-train-004","CICIDS2018","train","benign","3","130","18000","2.4","0.18","0.00","3"],
+    ["cicids-test-001","CICIDS2018","test","malicious","18","760","840000","4.6","0.82","0.00","18"],
+    ["cicids-test-002","CICIDS2018","test","malicious","9","1120","1900000","4.9","0.76","0.00","12"],
+    ["cicids-test-003","CICIDS2018","test","malicious","4","910","640000","4.3","0.68","0.00","8"],
+    ["cicids-test-004","CICIDS2018","test","malicious","24","680","420000","4.1","0.71","0.00","10"],
+    ["cicids-test-005","CICIDS2018","test","benign","2","122","16000","2.2","0.13","0.00","2"],
+    ["cicids-test-006","CICIDS2018","test","benign","3","138","23000","2.5","0.19","0.00","3"],
+    ["cicids-test-007","CICIDS2018","test","benign","1","101","13000","2.0","0.12","0.00","2"],
+    ["cicids-test-008","CICIDS2018","test","benign","3","145","26000","2.5","0.20","0.00","3"],
+    ["swat-train-001","SWaT-WADI","train","benign","0","18","3000","1.2","0.03","0.01","0"],
+    ["swat-train-002","SWaT-WADI","train","benign","0","22","3400","1.1","0.04","0.02","0"],
+    ["swat-train-003","SWaT-WADI","train","benign","1","20","3200","1.3","0.05","0.01","0"],
+    ["swat-train-004","SWaT-WADI","train","benign","0","25","3900","1.2","0.04","0.03","1"],
+    ["swat-test-001","SWaT-WADI","test","malicious","2","190","52000","2.6","0.62","0.44","4"],
+    ["swat-test-002","SWaT-WADI","test","malicious","1","240","68000","2.9","0.70","0.51","5"],
+    ["swat-test-003","SWaT-WADI","test","malicious","3","165","41000","2.4","0.58","0.37","3"],
+    ["swat-test-004","SWaT-WADI","test","malicious","2","210","59000","2.8","0.66","0.48","4"],
+    ["swat-test-005","SWaT-WADI","test","benign","0","24","3700","1.3","0.05","0.03","0"],
+    ["swat-test-006","SWaT-WADI","test","benign","1","29","4700","1.4","0.07","0.04","1"],
+    ["swat-test-007","SWaT-WADI","test","benign","0","20","3300","1.2","0.04","0.02","0"],
+    ["swat-test-008","SWaT-WADI","test","benign","1","28","4600","1.4","0.07","0.04","1"],
+]
+
+def generate_csv():
+    print(f"Writing {len(ROWS)-1} normalized rows to {OUT_CSV}...")
+    with open(OUT_CSV, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerows(ROWS)
+
+def update_manifest():
+    with open(OUT_CSV, "rb") as f:
+        sha = hashlib.sha256(f.read()).hexdigest()
+    
+    with open(MANIFEST, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+    
+    manifest["subset_sha256"] = sha
+    # Keep only CICIDS and SWaT
+    manifest["datasets"] = [d for d in manifest["datasets"] if d["family"] in ["CICIDS2018", "SWaT-WADI"]]
+    
+    with open(MANIFEST, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+        f.write("\n")
+
+if __name__ == "__main__":
+    generate_csv()
+    update_manifest()
+    print("Offline normalization complete.")

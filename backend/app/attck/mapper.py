@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import re
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
 
+from app.campaign.attack_mapper import TECHNIQUE_DB, find_attack_path
+from app.simulation_state import get_active_simulation
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "stix"
 ATTACK_CACHE = DATA_DIR / "enterprise-attack.json"
@@ -31,7 +34,6 @@ def ensure_attack_cache(download: bool = False) -> Path:
     """Return a local STIX bundle, downloading the full bundle when requested."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if download and not ATTACK_CACHE.exists():
-        # Build-time helper; runtime works offline from the checked-in subset.
         with urllib.request.urlopen(ATTACK_URL, timeout=20) as response:
             ATTACK_CACHE.write_bytes(response.read())
     return ATTACK_CACHE if ATTACK_CACHE.exists() else ATTACK_SUBSET
@@ -96,28 +98,83 @@ def _path_prefix_score(graph: nx.DiGraph, observed: list[str]) -> float:
     return valid / (len(observed) - 1)
 
 
+def _tokens(text: str) -> set[str]:
+    return {token for token in re.split(r"[^a-z0-9]+", text.lower()) if len(token) > 1}
+
+
+def predict_event_technique(event: dict[str, Any]) -> tuple[str | None, dict[str, Any]]:
+    """Predict technique deterministically via token matching and graph path validation."""
+    sim = get_active_simulation()
+    if sim:
+        it_graph, ot_graph = sim.it_graph, sim.ot_graph
+    else:
+        from app.graph.it_graph import build_steady_state_it_graph
+        from app.graph.ot_graph import build_steady_state_ot_graph
+        from app.data.synthetic_incident import init_defaults_only
+        it_graph = build_steady_state_it_graph()
+        ot_graph = build_steady_state_ot_graph()
+        init_defaults_only(it_graph, ot_graph)
+
+    graph = it_graph if event.get("graph_domain") == "IT" else ot_graph
+    text_content = f"{event.get('event_type', '')} {event.get('description', event.get('evidence', ''))}"
+    text_tokens = _tokens(text_content)
+
+    best_id: str | None = None
+    best_score = -1
+    best_path: dict[str, Any] | None = None
+    
+    src = event.get("source_node")
+    tgt = event.get("target_node")
+
+    for technique_id, technique in TECHNIQUE_DB.items():
+        path_match = None
+        if src and tgt and src != "external":
+            path_match = find_attack_path(src, tgt, graph, technique_id)
+        
+        technique_tokens = _tokens(
+            f"{technique.technique_id} {technique.name} {technique.tactic} {' '.join(technique.required_edge_types)}"
+        )
+        score = len(text_tokens & technique_tokens)
+        if path_match:
+            score += 3
+        if not technique.required_edge_types:
+            score += 1
+        
+        if score > best_score:
+            best_id = technique_id
+            best_score = score
+            best_path = path_match
+
+    return best_id, {"score": best_score, "path_match": best_path}
+
+
 def match_campaign(entity_event_sequence: list[dict[str, Any]], confidence_floor: float = 0.2) -> dict[str, Any]:
-    """Match released events to ATT&CK techniques using graph traversal."""
+    """Match released events to ATT&CK techniques using graph traversal and deterministic inference."""
     graph = load_attack_graph()
-    evidence = [
-        event for event in entity_event_sequence
-        if event.get("mitre_technique") and event.get("mitre_technique") in graph
-    ]
-    raw_evidence = [
-        {
+    
+    evidence = []
+    raw_evidence = []
+    
+    for event in entity_event_sequence:
+        predicted_id, _ = predict_event_technique(event)
+        
+        raw_evidence.append({
             "timestamp": event.get("timestamp"),
             "event_type": event.get("event_type"),
-            "technique": event.get("mitre_technique"),
-            "phase": event.get("mitre_phase"),
+            "technique": predicted_id,
+            "phase": graph.nodes[predicted_id].get("phase", "unknown") if predicted_id and predicted_id in graph else "unknown",
             "description": event.get("description"),
-        }
-        for event in entity_event_sequence
-        if event.get("mitre_technique")
-    ]
+        })
+        
+        if predicted_id and predicted_id in graph:
+            event_copy = dict(event)
+            event_copy["predicted_technique"] = predicted_id
+            evidence.append(event_copy)
+
     if not evidence:
         return {"status": "unattributed", "raw_evidence": raw_evidence, "matched_techniques": [], "campaign_state": {"benign": 1.0}}
 
-    observed = [event["mitre_technique"] for event in evidence]
+    observed = [event["predicted_technique"] for event in evidence]
     structural_confidence = _path_prefix_score(graph, observed)
     if structural_confidence < confidence_floor:
         return {"status": "unattributed", "raw_evidence": raw_evidence, "matched_techniques": [], "campaign_state": {"benign": 1.0}}
@@ -125,8 +182,8 @@ def match_campaign(entity_event_sequence: list[dict[str, Any]], confidence_floor
     phase_counts = {phase: 0.0 for phase in PHASE_ORDER}
     matched = []
     for idx, event in enumerate(evidence, start=1):
-        tech_id = event["mitre_technique"]
-        phase = graph.nodes[tech_id].get("phase", event.get("mitre_phase") or "unknown")
+        tech_id = event["predicted_technique"]
+        phase = graph.nodes[tech_id].get("phase", "unknown")
         weight = 1.0 + idx / len(evidence)
         if phase in phase_counts:
             phase_counts[phase] += weight

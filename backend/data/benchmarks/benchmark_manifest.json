@@ -1,6 +1,6 @@
 {
   "subset_file": "normalized_telemetry_subset.csv",
-  "subset_sha256": "9a19c8811323c180747f65b646e172d01ac877a11c10d3863e9d722ce5615579",
+  "subset_sha256": "f5a53a19f5d2a8adee2060b5856c36a2cef92b9a74eeea4ef58e192c9b01cab8",
   "methodology": "Normalized, committed benchmark subsets. Robust unsupervised baselines are trained only on benign train rows per dataset family; test rows are scored from median/MAD feature deviation.",
   "label_mapping": {
     "benign": "normal activity",
@@ -24,25 +24,11 @@
       "license_note": "Committed rows are normalized demo subset features, not raw packet/session exports."
     },
     {
-      "family": "LANL",
-      "source_name": "LANL Unified Host and Network Dataset",
-      "source_url": "https://csr.lanl.gov/data/cyber1/",
-      "row_count": 12,
-      "license_note": "Committed rows are normalized demo subset features, not raw authentication logs."
-    },
-    {
       "family": "SWaT-WADI",
       "source_name": "iTrust SWaT/WADI industrial control datasets",
       "source_url": "https://itrust.sutd.edu.sg/itrust-labs_datasets/",
       "row_count": 12,
       "license_note": "Committed rows are normalized demo subset features, not raw sensor traces."
-    },
-    {
-      "family": "CERT-Insider",
-      "source_name": "CERT Insider Threat synthetic dataset family",
-      "source_url": "https://resources.sei.cmu.edu/library/asset-view.cfm?assetid=508099",
-      "row_count": 12,
-      "license_note": "Committed rows are normalized demo subset features, not raw user activity logs."
     }
   ]
 }

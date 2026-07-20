@@ -3,6 +3,8 @@
 import React from 'react';
 import useSWR from 'swr';
 import { API_BASE, fetcher } from '@/lib/api';
+import { VulnerabilityPriorityPanel } from '@/components/VulnerabilityPriorityPanel';
+import { BusinessImpactCalculator } from '@/components/BusinessImpactCalculator';
 
 interface EvaluationSummary {
   anomaly_detection: {
@@ -76,7 +78,7 @@ export function StepEvidence() {
   }
 
   const cards = [
-    ['Detection rate', pct(evaluation.anomaly_detection.recall_detection_rate), `${evaluation.anomaly_detection.sample_count} benchmark test rows`],
+    ['Detection rate', pct(evaluation.anomaly_detection.recall_detection_rate), `${evaluation.anomaly_detection.sample_count} holdout test rows`],
     ['False positives', pct(evaluation.anomaly_detection.false_positive_rate), `Precision ${pct(evaluation.anomaly_detection.precision)}`],
     ['ATT&CK accuracy', pct(evaluation.mitre_attack_attribution.technique_level_accuracy), `${evaluation.mitre_attack_attribution.sample_count} computed technique cases`],
     ['Automation coverage', pct(evaluation.incident_response_automation.automation_coverage), `${evaluation.incident_response_automation.autonomously_executable_steps}/${evaluation.incident_response_automation.sample_count} steps`],
@@ -91,7 +93,7 @@ export function StepEvidence() {
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
             <h2 className="text-xl font-display tracking-widest text-white">PS7 JUDGE EVIDENCE PACK</h2>
-            <p className="text-xs font-mono text-white/50 mt-1">Metrics are computed from benchmark subsets, deterministic ATT&CK mapping, local SOAR state, and live audit verification.</p>
+            <p className="text-xs font-mono text-white/50 mt-1">Metrics are computed from public holdout subsets, deterministic ATT&CK mapping, local SOAR state, and live audit verification.</p>
           </div>
           <div className={`px-3 py-2 rounded font-mono text-xs border ${evaluation.auditability.valid ? 'text-[var(--color-accent-resilience)] border-[var(--color-accent-resilience)]/30 bg-[var(--color-accent-resilience)]/10' : 'text-[var(--color-accent-fusion)] border-[var(--color-accent-fusion)]/30 bg-[var(--color-accent-fusion)]/10'}`}>
             AUDIT {evaluation.auditability.valid ? 'VERIFIED' : 'FAILED'} · {evaluation.auditability.total_verified || 0} BLOCKS
@@ -108,9 +110,9 @@ export function StepEvidence() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 min-h-0">
+        <div className="grid grid-cols-4 gap-4 min-h-0">
           <div className="rounded border border-white/10 bg-white/5 p-4 overflow-y-auto">
-            <div className="text-xs font-mono uppercase tracking-wider text-white/40 mb-3">Benchmark Coverage</div>
+            <div className="text-xs font-mono uppercase tracking-wider text-white/40 mb-3">Public Holdout Evaluation</div>
             <div className="grid grid-cols-2 gap-2">
               {evaluation.benchmark_manifest.datasets.map((dataset) => (
                 <div key={dataset.family} className="rounded bg-black/20 p-3">
@@ -133,6 +135,12 @@ export function StepEvidence() {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="overflow-y-auto">
+            <VulnerabilityPriorityPanel />
+          </div>
+          <div className="overflow-y-auto">
+            <BusinessImpactCalculator />
           </div>
         </div>
 

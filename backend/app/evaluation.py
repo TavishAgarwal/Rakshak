@@ -10,7 +10,7 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 
-from app.campaign.attack_mapper import TECHNIQUE_DB, find_attack_path
+from app.attck.mapper import predict_event_technique
 from app.data.synthetic_incident import apply_single_event, get_incident_timeline, init_defaults_only
 from app.fusion.dempster_shafer import fuse_scores
 from app.graph.it_graph import build_steady_state_it_graph
@@ -149,38 +149,6 @@ def _benchmark_anomaly_metrics() -> tuple[dict[str, Any], dict[str, Any]]:
     return overall, manifest
 
 
-def _tokens(text: str) -> set[str]:
-    return {token for token in re.split(r"[^a-z0-9]+", text.lower()) if len(token) > 1}
-
-
-def _predict_technique(row: dict[str, Any]) -> tuple[str | None, dict[str, Any]]:
-    it_graph = build_steady_state_it_graph()
-    ot_graph = build_steady_state_ot_graph()
-    init_defaults_only(it_graph, ot_graph)
-    graph = it_graph if row["graph_domain"] == "IT" else ot_graph
-    text_tokens = _tokens(f"{row['event_type']} {row['evidence']}")
-
-    best_id: str | None = None
-    best_score = -1
-    best_path: dict[str, Any] | None = None
-    for technique_id, technique in TECHNIQUE_DB.items():
-        path_match = None
-        if row["source_node"] != "external":
-            path_match = find_attack_path(row["source_node"], row["target_node"], graph, technique_id)
-        technique_tokens = _tokens(
-            f"{technique.technique_id} {technique.name} {technique.tactic} {' '.join(technique.required_edge_types)}"
-        )
-        score = len(text_tokens & technique_tokens)
-        if path_match:
-            score += 3
-        if not technique.required_edge_types:
-            score += 1
-        if score > best_score:
-            best_id = technique_id
-            best_score = score
-            best_path = path_match
-
-    return best_id, {"score": best_score, "path_match": best_path}
 
 
 def _attribution_metrics() -> dict[str, Any]:
@@ -188,7 +156,7 @@ def _attribution_metrics() -> dict[str, Any]:
     evaluated: list[dict[str, Any]] = []
     correct = 0
     for row in cases:
-        predicted, details = _predict_technique(row)
+        predicted, details = predict_event_technique(row)
         is_correct = predicted == row["expected_technique"]
         correct += 1 if is_correct else 0
         evaluated.append({
