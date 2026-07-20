@@ -888,7 +888,7 @@ async def get_api_demo_context(_: dict = Depends(require_viewer)) -> dict[str, A
 
 
 @app.post("/api/demo/context")
-async def set_demo_context(
+def set_demo_context(
     req: DemoContextRequest,
     _: dict = Depends(require_admin)
 ) -> dict[str, Any]:
@@ -918,11 +918,11 @@ async def set_demo_context(
         get_demo_context()["sector"] = scenario["sector"]
         if not req.policy_id:
             get_demo_context()["policy_id"] = scenario["default_policy"]
-    return await get_demo_context()
+    return get_demo_context()
 
 
 @app.post("/api/demo/advance")
-async def advance_demo_endpoint(_: dict = Depends(require_analyst)) -> dict[str, Any]:
+def advance_demo_endpoint(_: dict = Depends(require_analyst)) -> dict[str, Any]:
     """Release the next scripted APT batch into SQLite-backed entity history."""
     return advance_demo()
 
