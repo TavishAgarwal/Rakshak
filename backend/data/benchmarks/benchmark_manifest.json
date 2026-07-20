@@ -1,6 +1,6 @@
 {
   "subset_file": "normalized_telemetry_subset.csv",
-  "subset_sha256": "f5a53a19f5d2a8adee2060b5856c36a2cef92b9a74eeea4ef58e192c9b01cab8",
+  "subset_sha256": "a91b9dafc88b670702109a59bff5b9c254f52be4708f5b7d9c00bb039b6732de",
   "methodology": "Normalized, committed benchmark subsets. Robust unsupervised baselines are trained only on benign train rows per dataset family; test rows are scored from median/MAD feature deviation.",
   "label_mapping": {
     "benign": "normal activity",

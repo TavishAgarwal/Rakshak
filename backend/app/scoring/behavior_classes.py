@@ -88,6 +88,30 @@ def _count_score(
     return contribution, [f"{label}({count}):{contribution:.2f}"]
 
 
+def _compute_mad_score(
+    node: dict[str, Any],
+    baselines: dict[str, Any] | None,
+    feature: str,
+    cap: float = 1.0,
+) -> tuple[float, list[str]]:
+    """Score based on Median Absolute Deviation from a baseline.
+
+    Returns (partial_score, contributing_factors).
+    """
+    if not baselines or feature not in baselines or feature not in node:
+        return 0.0, []
+    med, scale = baselines[feature]
+    val = float(node[feature])
+    deviation = abs(val - med) / scale if scale > 0 else 0
+    
+    # Sigmoid-like scaling or linear clipping for the Z-score.
+    # Deviation of 3 = 0.3, 10 = 1.0.
+    score = min((deviation / 10.0), cap)
+    if score > 0.05:
+        return score, [f"mad_dev({feature}={val:.2f}):{score:.2f}"]
+    return 0.0, []
+
+
 # ---------------------------------------------------------------------------
 # Weight tables — each flag maps to its contribution towards the 0-1 score
 # ---------------------------------------------------------------------------
@@ -168,10 +192,11 @@ OT_PHYSICS_WEIGHTS: dict[str, float] = {
 # Individual scorers
 # ---------------------------------------------------------------------------
 
-def score_identity(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_identity(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """Identity behavior scorer — unusual logins, privilege changes, role anomalies."""
     node = graph.nodes.get(node_id, {})
     total, factors = _flag_score(node, "identity_flags", IDENTITY_WEIGHTS)
+    
     score = min(total, 1.0)
     return BehaviorScore(
         scorer_class="identity",
@@ -182,10 +207,15 @@ def score_identity(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     )
 
 
-def score_credential(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_credential(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """Credential behavior scorer — dumps, pass-the-hash, reuse."""
     node = graph.nodes.get(node_id, {})
     total, factors = _flag_score(node, "credential_flags", CREDENTIAL_WEIGHTS)
+    
+    mad_s, mad_f = _compute_mad_score(node, baselines, "auth_failures", cap=0.50)
+    total += mad_s
+    factors.extend(mad_f)
+
     score = min(total, 1.0)
     return BehaviorScore(
         scorer_class="credential",
@@ -196,7 +226,7 @@ def score_credential(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     )
 
 
-def score_process(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_process(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """Process behavior scorer — suspicious executables, injections, PLC writes."""
     node = graph.nodes.get(node_id, {})
     flag_total, factors = _flag_score(node, "process_flags", PROCESS_WEIGHTS)
@@ -208,6 +238,10 @@ def score_process(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
         proc_bonus = min(len(procs) * 0.05, 0.15)
         factors.append(f"suspicious_process_count({len(procs)}):{proc_bonus:.2f}")
 
+    mad_s, mad_f = _compute_mad_score(node, baselines, "process_rarity", cap=0.40)
+    flag_total += mad_s
+    factors.extend(mad_f)
+
     score = min(flag_total + proc_bonus, 1.0)
     return BehaviorScore(
         scorer_class="process",
@@ -218,7 +252,7 @@ def score_process(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     )
 
 
-def score_network(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_network(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """Network behavior scorer — port scans, C2, lateral, exfil, cross-zone."""
     node = graph.nodes.get(node_id, {})
     flag_total, factors = _flag_score(node, "network_flags", NETWORK_WEIGHTS)
@@ -238,6 +272,11 @@ def score_network(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
         factors.append(f"data_exfil({exfil / 1e6:.1f}MB):{exfil_s:.2f}")
         flag_total += exfil_s
 
+    mad_s1, mad_f1 = _compute_mad_score(node, baselines, "conn_rate", cap=0.40)
+    mad_s2, mad_f2 = _compute_mad_score(node, baselines, "bytes_out", cap=0.40)
+    flag_total += mad_s1 + mad_s2
+    factors.extend(mad_f1 + mad_f2)
+
     score = min(flag_total, 1.0)
     return BehaviorScore(
         scorer_class="network",
@@ -248,7 +287,7 @@ def score_network(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     )
 
 
-def score_dns(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_dns(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """DNS behavior scorer — C2 callbacks, DGA domains, tunneling."""
     node = graph.nodes.get(node_id, {})
     flag_total, factors = _flag_score(node, "dns_flags", DNS_WEIGHTS)
@@ -261,6 +300,10 @@ def score_dns(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     flag_total += dga_s
     factors.extend(dga_f)
 
+    mad_s, mad_f = _compute_mad_score(node, baselines, "dns_entropy", cap=0.40)
+    flag_total += mad_s
+    factors.extend(mad_f)
+
     score = min(flag_total, 1.0)
     return BehaviorScore(
         scorer_class="dns",
@@ -271,7 +314,7 @@ def score_dns(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     )
 
 
-def score_cloud_api(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_cloud_api(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """Cloud-API behavior scorer — unusual queries, bulk exports, API abuse."""
     node = graph.nodes.get(node_id, {})
     flag_total, factors = _flag_score(node, "cloud_api_flags", CLOUD_API_WEIGHTS)
@@ -284,6 +327,10 @@ def score_cloud_api(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     flag_total += api_s
     factors.extend(api_f)
 
+    mad_s, mad_f = _compute_mad_score(node, baselines, "api_burst", cap=0.40)
+    flag_total += mad_s
+    factors.extend(mad_f)
+
     score = min(flag_total, 1.0)
     return BehaviorScore(
         scorer_class="cloud_api",
@@ -294,7 +341,7 @@ def score_cloud_api(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
     )
 
 
-def score_ot_physics(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
+def score_ot_physics(node_id: str, graph: nx.DiGraph, baselines: dict[str, Any] | None = None) -> BehaviorScore:
     """OT-physics behavior scorer — setpoint changes, sensor deviations, interlocks."""
     node = graph.nodes.get(node_id, {})
     flag_total, factors = _flag_score(node, "ot_physics_flags", OT_PHYSICS_WEIGHTS)
@@ -313,6 +360,10 @@ def score_ot_physics(node_id: str, graph: nx.DiGraph) -> BehaviorScore:
         dev_s = min(deviation * 0.60, 0.50)
         factors.append(f"sensor_deviation({deviation:.0%}):{dev_s:.2f}")
         flag_total += dev_s
+
+    mad_s, mad_f = _compute_mad_score(node, baselines, "ot_deviation", cap=0.40)
+    flag_total += mad_s
+    factors.extend(mad_f)
 
     score = min(flag_total, 1.0)
     return BehaviorScore(
@@ -347,6 +398,7 @@ def score_all(
     node_id: str,
     it_graph: nx.DiGraph,
     ot_graph: nx.DiGraph,
+    baselines: dict[str, Any] | None = None
 ) -> list[BehaviorScore]:
     """Run all 7 scorers for *node_id*.
 
@@ -370,15 +422,19 @@ def score_all(
             for fn in ALL_SCORERS
         ]
 
-    intensity_multiplier = max(0.2, get_active_simulation().attack_intensity / 5.0)
+    # For testing and scenarios where active simulation might not be present, wrap in try/except or fallback
+    try:
+        intensity_multiplier = max(0.2, get_active_simulation().attack_intensity / 5.0)
+    except Exception:
+        intensity_multiplier = 1.0
 
     results: list[BehaviorScore] = []
     for scorer_fn in ALL_SCORERS:
         candidates: list[BehaviorScore] = []
         if in_it:
-            candidates.append(scorer_fn(node_id, it_graph))
+            candidates.append(scorer_fn(node_id, it_graph, baselines))
         if in_ot:
-            candidates.append(scorer_fn(node_id, ot_graph))
+            candidates.append(scorer_fn(node_id, ot_graph, baselines))
         # Take the highest score across graph instances
         best = max(candidates, key=lambda s: s.score)
         
@@ -390,7 +446,7 @@ def score_all(
             node_id=best.node_id,
             score=round(scaled_score, 4),
             label=_severity_label(scaled_score),
-            contributing_factors=best.contributing_factors + [f"intensity_scaling(x{intensity_multiplier:.1f})"] if best.score > 0 else []
+            contributing_factors=best.contributing_factors + [f"intensity_scaling(x{intensity_multiplier:.1f})"] if best.score > 0 and intensity_multiplier != 1.0 else best.contributing_factors
         )
         results.append(best)
 

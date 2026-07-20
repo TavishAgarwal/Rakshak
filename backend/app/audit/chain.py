@@ -235,12 +235,18 @@ def verify_audit_chain() -> dict[str, Any]:
     if _use_jsonl():
         if not _CHAIN_FILE or not os.path.exists(_CHAIN_FILE):
             return {"valid": True, "invalid_at_index": None, "total_verified": 0}
-        previous_expected = "0" * 64
+        previous_expected = None
         with open(_CHAIN_FILE, "r", encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 if not line.strip():
                     continue
                 entry = json.loads(line)
+                
+                # If this is the first line we're reading, accept its prev_hash as the root.
+                # This handles pruned chains where the true genesis block was deleted.
+                if previous_expected is None:
+                    previous_expected = entry.get("previous_hash", "0" * 64)
+                    
                 content = {
                     key: value
                     for key, value in entry.items()
@@ -255,11 +261,16 @@ def verify_audit_chain() -> dict[str, Any]:
         return {"valid": True, "invalid_at_index": None, "total_verified": idx + 1 if "idx" in locals() else 0}
 
     init_demo_db()
-    previous_expected = "0" * 64
+    previous_expected = None
     with _chain_lock, connect() as conn:
         rows = conn.execute("SELECT id, entry_json, prev_hash, this_hash FROM audit_entries ORDER BY id").fetchall()
         for idx, row in enumerate(rows):
             entry = json.loads(row["entry_json"])
+            
+            # If this is the first row we're reading, accept its prev_hash as the root.
+            if previous_expected is None:
+                previous_expected = row["prev_hash"]
+                
             content = {
                 key: value
                 for key, value in entry.items()

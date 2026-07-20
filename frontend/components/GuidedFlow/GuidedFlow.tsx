@@ -177,6 +177,16 @@ function RiskBar({ label, value, tone }: { label: string; value: number; tone: s
 
 export function GuidedFlow() {
   const [activeView, setActiveView] = useState<View>('dashboard');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const view = new URLSearchParams(window.location.search).get('view') as View;
+      if (view && ['dashboard', 'simulation', 'intel', 'reports'].includes(view)) {
+        setActiveView(view);
+      }
+    }
+  }, []);
+
   const [utilityPanel, setUtilityPanel] = useState<UtilityPanel>(null);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('System active');
@@ -1106,8 +1116,16 @@ function ReportsView({
       </section>
 
       <section className="grid gap-5 md:grid-cols-3">
-        <MetricCard label="RAKSHAK MTTD" value={mttd ? `${mttd.rakshak_mttd_hours.toFixed(1)}h` : 'Live'} detail="Detection evidence" />
-        <MetricCard label="RAKSHAK MTTR" value={mttd ? `${mttd.rakshak_mttr_hours.toFixed(1)}h` : 'Live'} detail="Recovery evidence" />
+        <MetricCard 
+          label="RAKSHAK MTTD" 
+          value={mttd ? `${mttd.rakshak_mttd_hours.toFixed(1)}h` : 'Live'} 
+          detail={mttd ? `vs Baseline SOC: ${mttd.baseline_soc_mttd_hours.toFixed(1)}h` : "Detection evidence"} 
+        />
+        <MetricCard 
+          label="RAKSHAK MTTR" 
+          value={mttd ? `${mttd.rakshak_mttr_hours.toFixed(1)}h` : 'Live'} 
+          detail={mttd ? `vs Baseline SOC: ${mttd.baseline_soc_mttr_hours.toFixed(1)}h` : "Recovery evidence"} 
+        />
         <MetricCard label="Selected Entity" value={selectedEntityId ?? 'None'} detail="Audit filter context" />
       </section>
 

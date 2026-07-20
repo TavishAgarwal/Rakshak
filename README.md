@@ -1,5 +1,7 @@
 # RAKSHAK
 
+[![CI](https://github.com/TavishAgarwal/Rakshak/actions/workflows/ci.yml/badge.svg)](https://github.com/TavishAgarwal/Rakshak/actions/workflows/ci.yml)
+
 **AI-Driven Cyber Resilience Intelligence Platform for Indian Critical National Infrastructure**
 
 RAKSHAK is a hackathon MVP for **ET AI Hackathon 2026 - PS7**, focused on cyber resilience for critical national infrastructure. The core idea is simple: a CNI security platform should not only ask "is this malicious?" It should also ask "can the mission keep operating safely while we respond?"
@@ -188,7 +190,7 @@ Recommended before publishing a fresh public repository:
 - Add a `.env.example` with placeholder-only values.
 
 ## Testing And Verification
-
+<!-- Test count last verified: 2026-07-20 -->
 Backend tests:
 
 ```bash
@@ -213,7 +215,7 @@ npm run build
 Recent local verification:
 
 ```text
-Backend tests: 24 passed
+Backend tests: 16 passed
 Frontend lint/type check: passed
 Frontend production build: passed
 ```
@@ -271,6 +273,8 @@ More detail lives in:
 - `docs/design.md` - UI design system
 - `docs/rules.md` - implementation constraints and safety rules
 - `docs/phases.md` - phase plan
+- `docs/evaluation.md` - evidence-backed evaluation metrics, MTTD/MTTR, and automation coverage
+- `docs/deployment-and-impact.md` - business impact and path to production deployment
 
 ## Status
 

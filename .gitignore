@@ -49,3 +49,11 @@ backend/app/auth_restore.py
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Large datasets
+backend/data/benchmarks/cicids.csv
+backend/data/stix/enterprise-attack-official.json
+
+# Virtual environments
+.venv-audit/
+

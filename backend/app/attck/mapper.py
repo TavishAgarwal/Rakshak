@@ -106,7 +106,8 @@ def predict_event_technique(event: dict[str, Any]) -> tuple[str | None, dict[str
     """Predict technique deterministically via token matching and graph path validation."""
     sim = get_active_simulation()
     if sim:
-        it_graph, ot_graph = sim.it_graph, sim.ot_graph
+        from app.graph import get_it_graph, get_ot_graph
+        it_graph, ot_graph = get_it_graph(), get_ot_graph()
     else:
         from app.graph.it_graph import build_steady_state_it_graph
         from app.graph.ot_graph import build_steady_state_ot_graph

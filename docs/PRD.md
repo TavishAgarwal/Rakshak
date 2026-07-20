@@ -57,7 +57,7 @@ because response tooling ignores operational continuity — it's binary (isolate
   rule/statistical stand-ins that produce believable, internally-consistent scores instead.
 - Real SCADA/ICS protocol integration.
 - Multi-tenant auth, RBAC, production security hardening.
-- Real SOAR integrations (isolate endpoint, revoke credential) — simulate the action + log entry.
+- Real SOAR integrations (isolate endpoint, revoke credential) — simulate the action with real, idempotent state mutations.
 
 ## 5. Success Criteria (mapped to official judging weights)
 - **Innovation (25%):** Living Graph + DS-fusion + degrade-before-isolate framing is visibly

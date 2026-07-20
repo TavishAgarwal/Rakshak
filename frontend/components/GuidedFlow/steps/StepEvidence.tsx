@@ -93,7 +93,8 @@ export function StepEvidence() {
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
             <h2 className="text-xl font-display tracking-widest text-white">PS7 JUDGE EVIDENCE PACK</h2>
-            <p className="text-xs font-mono text-white/50 mt-1">Metrics are computed from public holdout subsets, deterministic ATT&CK mapping, local SOAR state, and live audit verification.</p>
+            <p className="text-xs font-mono text-[var(--color-accent-fusion)] mt-1 font-bold">⚠️ NOTE: Anomaly metrics are a unit-scale sanity check (n=16), not a statistical benchmark. Full benchmark planned for future work.</p>
+            <p className="text-xs font-mono text-white/50 mt-1">Other metrics are deterministic ATT&CK mapping, local SOAR state, and live audit verification.</p>
           </div>
           <div className={`px-3 py-2 rounded font-mono text-xs border ${evaluation.auditability.valid ? 'text-[var(--color-accent-resilience)] border-[var(--color-accent-resilience)]/30 bg-[var(--color-accent-resilience)]/10' : 'text-[var(--color-accent-fusion)] border-[var(--color-accent-fusion)]/30 bg-[var(--color-accent-fusion)]/10'}`}>
             AUDIT {evaluation.auditability.valid ? 'VERIFIED' : 'FAILED'} · {evaluation.auditability.total_verified || 0} BLOCKS

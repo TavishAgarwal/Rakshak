@@ -31,10 +31,23 @@ class AttackTechnique:
 import json
 from pathlib import Path
 
-_STIX_PATH = Path(__file__).resolve().parents[2] / "data" / "stix" / "enterprise-attack-subset.json"
+_STIX_PATH = Path(__file__).resolve().parents[2] / "data" / "stix" / "enterprise-attack-official.json"
+
+# Semantic mapping from official MITRE data sources to Rakshak edge types
+DATA_SOURCE_MAPPING = {
+    "Network Traffic: Network Connection": ["network_connection", "c2_traffic", "cross_zone"],
+    "Process: Process Creation": ["process_execution", "remote_execution"],
+    "Command: Command Execution": ["command_execution"],
+    "Active Directory: Active Directory Object Access": ["credential_access", "pass_the_hash"],
+    "Logon Session: Logon Session Creation": ["unusual_auth"],
+    "File: File Access": ["file_access", "data_exfil"]
+}
 
 def _load_technique_db() -> dict[str, AttackTechnique]:
-    """Load ATT&CK techniques from a STIX 2.1 bundle."""
+    """Load ATT&CK techniques from the official MITRE STIX 2.1 bundle."""
+    if not _STIX_PATH.exists():
+        return {}
+        
     with open(_STIX_PATH, "r") as f:
         bundle = json.load(f)
     
@@ -42,6 +55,7 @@ def _load_technique_db() -> dict[str, AttackTechnique]:
     for obj in bundle.get("objects", []):
         if obj.get("type") != "attack-pattern":
             continue
+            
         ext_refs = obj.get("external_references", [])
         tech_id = next((r["external_id"] for r in ext_refs if r.get("source_name") == "mitre-attack"), None)
         if not tech_id:
@@ -49,7 +63,16 @@ def _load_technique_db() -> dict[str, AttackTechnique]:
         
         kill_chain = obj.get("kill_chain_phases", [{}])
         tactic = kill_chain[0].get("phase_name", "unknown") if kill_chain else "unknown"
-        edge_types = obj.get("x_rakshak_required_edge_types", [])
+        
+        # Parse official data sources instead of custom Rakshak extensions
+        data_sources = obj.get("x_mitre_data_sources", [])
+        edge_types = []
+        for ds in data_sources:
+            if ds in DATA_SOURCE_MAPPING:
+                edge_types.extend(DATA_SOURCE_MAPPING[ds])
+        
+        # Deduplicate edge types
+        edge_types = list(set(edge_types))
         
         db[tech_id] = AttackTechnique(
             technique_id=tech_id,

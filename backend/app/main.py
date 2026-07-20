@@ -5,7 +5,11 @@ WS + REST routes will be registered here in later phases.
 
 from contextlib import asynccontextmanager
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 from hmac import compare_digest
 from typing import Any, AsyncIterator
 
@@ -50,6 +54,8 @@ from app.fusion.dempster_shafer import fuse_scores, to_bpa, ds_combine, belief_p
 from app.evaluation import compute_ps7_summary
 from app.threat_intel import load_advisories, load_scenarios, match_advisories
 from app.simulation_state import SimulationConfig, get_active_simulation, set_active_simulation
+from app.ingestion.siem import SiemLogRequest, parse_siem_event
+from app.cert_in_export import generate_cert_in_report
 from app.auth import (
     get_current_active_user, require_analyst, require_operator, require_admin, require_viewer,
     UserRole, verify_password, authenticate_user, create_access_token,
@@ -182,7 +188,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 
 # Load environment variables
-load_dotenv()
 
 # Get allowed origins from environment, default to localhost for development
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3010")
@@ -627,6 +632,127 @@ async def ai_query(req: QueryRequest, _: dict = Depends(require_analyst)) -> dic
         "tokens_used": result.get("tokens_used", 0),
         "error": result.get("error"),
     }
+
+
+# ---------------------------------------------------------------------------
+# SIEM Ingestion Endpoint
+# ---------------------------------------------------------------------------
+
+@app.post("/api/ingest/siem")
+async def ingest_siem_event(payload: SiemLogRequest, _: dict = Depends(require_operator)) -> dict[str, Any]:
+    """Ingest a live SIEM log and update the in-memory graph.
+    
+    This replaces the SQLite mock data pipeline with a live endpoint that
+    can accept webhooks from Splunk, Sentinel, etc.
+    """
+    t_ingest = time.time()
+    
+    node_updates = parse_siem_event(payload)
+    node_id = node_updates["id"]
+    
+    it = get_it_graph()
+    ot = get_ot_graph()
+    
+    in_it = node_id in it
+    in_ot = node_id in ot
+    
+    if not in_it and not in_ot:
+        # If node is completely unknown, we could drop it or add to IT graph by default.
+        # Here we just add it to IT as a default endpoint for simplicity.
+        it.add_node(node_id, id=node_id, node_type="ENDPOINT", label=node_id)
+        in_it = True
+        
+    if in_it:
+        it.nodes[node_id].update(node_updates)
+    if in_ot:
+        ot.nodes[node_id].update(node_updates)
+        
+    # Recompute scores to trigger potential response
+    behavior_scores = score_all(node_id, it, ot)
+    ds_result = fuse_scores([(s.scorer_class, s.score) for s in behavior_scores])
+    
+    # Calculate criticality and response gate for full MTTD latency representation
+    crit = compute_criticality(node_id, it, ot, _current_policy())
+    gate = evaluate_gate(
+        node_id=node_id,
+        asset_type=crit.asset_type,
+        confidence=ds_result.belief,
+        criticality_composite=crit.composite_score,
+        safety_impact=crit.safety_impact,
+    )
+    
+    # Cryptographically seal the decision in the audit ledger
+    append_audit_entry(
+        entity_id=node_id,
+        evidence_sources=_audit_sources_from_scores(ds_result, behavior_scores),
+        alternatives_considered=[],
+        human_approval={"approved_by": None, "timestamp": None},
+        action_taken=gate.allowed_actions[0] if gate.allowed_actions else "none",
+        event_type="siem_ingest_decision"
+    )
+    
+    t_decision = time.time()
+    latency_ms = (t_decision - t_ingest) * 1000
+    
+    return {
+        "status": "ingested",
+        "entity_id": node_id,
+        "updated_belief": ds_result.belief,
+        "processing_latency_ms": round(latency_ms, 2)
+    }
+
+
+# ---------------------------------------------------------------------------
+# CERT-In Incident Export Workflow
+# ---------------------------------------------------------------------------
+
+class CertInExportRequest(BaseModel):
+    node_id: str
+
+@app.post("/api/cert-in/report")
+async def export_cert_in_report(req: CertInExportRequest, _: dict = Depends(require_analyst)) -> dict[str, Any]:
+    """Automated pathway for CERT-In incident reporting formatting."""
+    payload = _demo_entity_payload(req.node_id)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Entity not found for report generation")
+
+    it = get_it_graph()
+    ot = get_ot_graph()
+
+    # Reconstruct required arguments for the export function from the demo payload
+    campaign_state = compute_campaign_state(
+        req.node_id,
+        {s.scorer_class: s.score for s in score_all(req.node_id, it, ot)},
+        it,
+        ot
+    )
+    
+    crit = compute_criticality(req.node_id, it, ot, _current_policy())
+    
+    # We retrieve ds result for the confidence
+    behavior_scores = score_all(req.node_id, it, ot)
+    ds_result = fuse_scores([(s.scorer_class, s.score) for s in behavior_scores])
+    
+    gate_decision = evaluate_gate(
+        req.node_id,
+        crit.asset_type,
+        ds_result.belief,
+        crit.composite_score,
+        crit.safety_impact
+    )
+
+    evidence_sources = payload.get("evidence_log", [])
+
+    entity_info = {"id": req.node_id}
+    
+    report = generate_cert_in_report(
+        entity=entity_info,
+        campaign_state=campaign_state,
+        gate_decision=gate_decision,
+        evidence_sources=evidence_sources
+    )
+
+    return report
 
 
 # ---------------------------------------------------------------------------

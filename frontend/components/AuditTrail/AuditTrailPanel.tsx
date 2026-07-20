@@ -133,7 +133,7 @@ export function AuditTrailPanel({ onClose, entityId, embedded = false }: AuditTr
                       <div className="px-3 pb-3 pt-2 bg-black/40 border-t border-white/5 text-[0.65rem] font-mono flex flex-col gap-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <span className="text-white/40 mb-1 block">Evidence Sources (D-S Fusion)</span>
+                            <span className="text-white/40 mb-1 block" title="Dempster-Shafer Data Fusion (Belief/Plausibility/Uncertainty)">Evidence Sources (Dempster-Shafer Fusion)</span>
                             {entry.evidence_sources && entry.evidence_sources.length > 0 ? entry.evidence_sources.map((s, i) => (
                               <div key={i} className="flex justify-between border-b border-white/5 py-1">
                                 <span className="text-[var(--color-accent-it)]">{s.source}</span>
