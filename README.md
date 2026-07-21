@@ -28,7 +28,7 @@ The system models separate IT and OT estates, scores suspicious behavior through
 - **Frontend:** Next.js App Router, React, TypeScript, Tailwind CSS, D3, SWR
 - **Realtime:** FastAPI WebSocket stream
 - **Data:** synthetic graph and incident data persisted as JSON/JSONL
-- **LLM:** Anthropic Claude for narration only, with deterministic fallback when no API key is configured
+- **LLM:** OpenAI GPT for narration only, with deterministic fallback when no API key is configured
 - **CI:** GitHub Actions workflow for backend tests and frontend type-check/build
 
 ## Repository Layout
@@ -114,12 +114,12 @@ http://localhost:3000
 
 ## Environment Variables
 
-RAKSHAK runs without live secrets by default. The narration layer falls back to deterministic text if no Anthropic key is present.
+RAKSHAK runs without live secrets by default. The narration layer falls back to deterministic text if no OpenAI key is present.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | No | Enables Claude narration for `/query`. If absent, deterministic fallback narration is used. |
-| `RAKSHAK_NARRATION_MODEL` | No | Overrides the Claude model name used by the narration client. |
+| `OPENAI_API_KEY` | No | Enables GPT narration for `/query`. If absent, deterministic fallback narration is used. |
+| `RAKSHAK_NARRATION_MODEL` | No | Overrides the GPT model name used by the narration client. |
 | `RAKSHAK_DATA_DIR` | No | Overrides backend data storage path for graphs and audit logs. |
 | `RAKSHAK_RESPONSE_API_TOKEN` | Required for response POSTs | Bearer token required before `/api/entities/{node_id}/response-decision` can evaluate or execute response actions. |
 | `NEXT_PUBLIC_API_URL` | No | Frontend REST API base URL. Defaults to `http://localhost:8000`. |
@@ -244,7 +244,7 @@ The workflow runs:
 - frontend TypeScript check
 - frontend production build
 
-The test suite does not require live Anthropic credentials.
+The test suite does not require live OpenAI credentials.
 
 ## Data And Licensing Notes
 

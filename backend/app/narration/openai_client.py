@@ -1,13 +1,13 @@
-"""RAKSHAK — Claude API client for narration.
+"""RAKSHAK — OpenAI API client for narration.
 
 LLM is only called here and in the AI Query Bar endpoint.
 Never in scoring, fusion, or matching — those stay deterministic Python.
 
 The client receives the **real structured evidence** (scores, fusion triple,
-campaign state, graph context) and asks Claude to narrate it in plain language.
+campaign state, graph context) and asks GPT to narrate it in plain language.
 It never prompts the LLM to invent evidence.
 
-API key is read from the ANTHROPIC_API_KEY environment variable only.
+API key is read from the OPENAI_API_KEY environment variable only.
 """
 
 from __future__ import annotations
@@ -22,9 +22,9 @@ import httpx
 # Config
 # ---------------------------------------------------------------------------
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
-MODEL = os.getenv("RAKSHAK_NARRATION_MODEL", "claude-sonnet-4-20250514")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+MODEL = os.getenv("RAKSHAK_NARRATION_MODEL", "gpt-4o")
 MAX_TOKENS = 1024
 
 # ---------------------------------------------------------------------------
@@ -149,13 +149,13 @@ async def narrate(
     query: str,
     evidence: dict[str, Any],
 ) -> dict[str, Any]:
-    """Call Claude API to narrate the structured evidence.
+    """Call OpenAI API to narrate the structured evidence.
 
     Returns:
         {"narration": str, "model": str, "tokens_used": int}
         or {"narration": str, "error": str} on failure.
     """
-    if not ANTHROPIC_API_KEY:
+    if not OPENAI_API_KEY:
         # Fallback: return a deterministic summary when no API key is set
         return _fallback_narration(node_id, query, evidence)
 
@@ -177,28 +177,27 @@ async def narrate(
         }
 
     headers = {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
     }
 
     payload = {
         "model": MODEL,
         "max_tokens": MAX_TOKENS,
-        "system": SYSTEM_PROMPT,
         "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
         ],
     }
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(ANTHROPIC_API_URL, headers=headers, json=payload)
+            resp = await client.post(OPENAI_API_URL, headers=headers, json=payload)
             resp.raise_for_status()
             data = resp.json()
 
-            narration_text = data["content"][0]["text"]
-            tokens = data.get("usage", {}).get("output_tokens", 0)
+            narration_text = data["choices"][0]["message"]["content"]
+            tokens = data.get("usage", {}).get("completion_tokens", 0)
 
             return {
                 "narration": narration_text,
@@ -209,7 +208,7 @@ async def narrate(
     except httpx.HTTPStatusError as e:
         return {
             "narration": _fallback_narration(node_id, query, evidence)["narration"],
-            "error": f"Claude API returned {e.response.status_code}",
+            "error": f"OpenAI API returned {e.response.status_code}",
         }
     except Exception as e:
         return {
@@ -229,7 +228,7 @@ def _fallback_narration(
 ) -> dict[str, Any]:
     """Generate a deterministic narration from the structured evidence.
 
-    Used when ANTHROPIC_API_KEY is not set (dev/demo mode).
+    Used when OPENAI_API_KEY is not set (dev/demo mode).
     """
     fusion = evidence.get("fusion", {})
     belief = fusion.get("belief", 0)

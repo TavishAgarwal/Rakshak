@@ -49,7 +49,7 @@ from app.audit.log import (
 )
 from app.audit.chain import append_audit_entry, get_audit_chain, verify_audit_chain
 from app.streaming import stream_incident
-from app.narration.claude_client import narrate
+from app.narration.openai_client import narrate
 from app.fusion.dempster_shafer import fuse_scores, to_bpa, ds_combine, belief_plausibility
 from app.evaluation import compute_ps7_summary
 from app.threat_intel import load_advisories, load_scenarios, match_advisories
@@ -518,7 +518,7 @@ async def ai_query(req: QueryRequest, _: dict = Depends(require_analyst)) -> dic
     """
     try:
         # Use the same comprehensive sanitization as the narration service
-        from app.narration.claude_client import _sanitize_query
+        from app.narration.openai_client import _sanitize_query
         sanitized_query = _sanitize_query(req.query)
     except ValueError as e:
         return {
