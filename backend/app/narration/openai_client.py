@@ -25,7 +25,7 @@ import httpx
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 MODEL = os.getenv("RAKSHAK_NARRATION_MODEL", "gpt-4o")
-MAX_TOKENS = 1024
+MAX_TOKENS = 4096
 
 # ---------------------------------------------------------------------------
 # System prompt — scoped to narration only
@@ -183,12 +183,16 @@ async def narrate(
 
     payload = {
         "model": MODEL,
-        "max_tokens": MAX_TOKENS,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
         ],
     }
+    
+    if "gpt-5" in MODEL or "o1" in MODEL:
+        payload["max_completion_tokens"] = MAX_TOKENS
+    else:
+        payload["max_tokens"] = MAX_TOKENS
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

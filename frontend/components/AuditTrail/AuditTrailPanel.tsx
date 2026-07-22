@@ -39,7 +39,7 @@ export function AuditTrailPanel({ onClose, entityId, embedded = false }: AuditTr
   };
 
   const content = (
-    <div className={`glass-panel w-full ${embedded ? 'max-w-5xl h-[80vh] min-h-[500px]' : 'max-w-5xl h-[85vh]'} flex flex-col overflow-hidden relative shadow-2xl border border-white/10`} style={{ background: 'var(--color-bg-void)' }}>
+    <div className={`glass-panel w-full ${embedded ? 'min-h-[500px]' : 'max-w-5xl h-[85vh]'} flex flex-col overflow-hidden relative shadow-2xl border border-white/10`} style={{ background: 'var(--color-bg-void)' }}>
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b border-white/5 bg-white/5">
@@ -186,7 +186,7 @@ export function AuditTrailPanel({ onClose, entityId, embedded = false }: AuditTr
   );
 
   if (embedded) {
-    return <div className="w-full h-full flex flex-col items-center justify-center p-4">{content}</div>;
+    return content;
   }
 
   return (

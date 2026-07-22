@@ -92,6 +92,7 @@ def append_audit_entry(
     org_id: str | None = None,
     facility_id: str | None = None,
     policy_id: str | None = None,
+    run_id: str | None = None,
 ) -> dict[str, Any]:
     """Create and append a hash-chained audit entry."""
     init_demo_db()
@@ -124,6 +125,8 @@ def append_audit_entry(
         content["step_status"] = step_status
     if metadata:
         content["metadata"] = metadata
+    if run_id:
+        content["run_id"] = run_id
 
     if _use_jsonl():
         with _chain_lock:

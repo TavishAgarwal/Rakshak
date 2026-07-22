@@ -4,7 +4,8 @@
  * Connects to the backend WS /stream and dispatches typed events.
  */
 
-const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
+const IS_SERVER = typeof window === 'undefined';
+const WS_BASE = IS_SERVER ? (process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000') : `ws://${window.location.host}`;
 
 /* ── Stream message types ─────────────────────────────── */
 

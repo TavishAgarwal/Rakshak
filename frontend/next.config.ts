@@ -48,6 +48,7 @@ const nextConfig: NextConfig = {
       { source: "/query", destination: "http://127.0.0.1:8000/query" },
       { source: "/redteam/:path*", destination: "http://127.0.0.1:8000/redteam/:path*" },
       { source: "/simulation/:path*", destination: "http://127.0.0.1:8000/simulation/:path*" },
+      { source: "/stream", destination: "http://127.0.0.1:8000/stream" },
       { source: "/health", destination: "http://127.0.0.1:8000/health" }
     ];
   },

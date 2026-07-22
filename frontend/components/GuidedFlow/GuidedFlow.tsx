@@ -14,7 +14,7 @@ import { API_BASE, fetcher, postSimulationConfigure, postSimulationDeploy } from
 import { useDashboard, type GraphNode } from '@/lib/store';
 
 type View = 'dashboard' | 'simulation' | 'intel' | 'reports';
-type UtilityPanel = 'notifications' | 'settings' | 'profile' | 'inspector' | 'signals' | 'feed' | 'redteam' | 'audit' | null;
+type UtilityPanel = 'notifications' | 'settings' | 'profile' | 'inspector' | 'signals' | 'feed' | 'redteam' | null;
 
 interface HealthResponse {
   status: string;
@@ -249,11 +249,7 @@ export function GuidedFlow() {
     }
   }, [allNodes, simulationTargets.length]);
 
-  useEffect(() => {
-    if (selectedEntityId && activeView === 'dashboard') {
-      setUtilityPanel('inspector');
-    }
-  }, [selectedEntityId, activeView]);
+
 
   useEffect(() => {
     setConfigSynced(false);
@@ -269,6 +265,8 @@ export function GuidedFlow() {
         pushStatus('Configuration saved & synced');
       }).catch((err) => {
         pushStatus(err instanceof Error ? err.message : 'Sync failed');
+      }).finally(() => {
+        setConfigSynced(true);
       });
     }, 500);
     return () => clearTimeout(timer);
@@ -470,13 +468,6 @@ export function GuidedFlow() {
               title="Red Team Mode"
             >
               <span className="text-xs font-bold tracking-widest uppercase">Red Team</span>
-            </button>
-            <button
-              onClick={() => setUtilityPanel(utilityPanel === 'audit' ? null : 'audit')}
-              className={`flex h-10 px-4 items-center justify-center rounded-full border border-white/10 ${utilityPanel === 'audit' ? 'bg-cyan-100/20 text-cyan-100' : 'text-white/70 hover:bg-white/10 hover:text-cyan-100'}`}
-              title="Audit"
-            >
-              <span className="text-xs font-bold tracking-widest uppercase">Audit</span>
             </button>
             <div className="mx-2 h-6 w-px bg-white/20" />
             <button
@@ -1129,7 +1120,7 @@ function ReportsView({
         <MetricCard label="Selected Entity" value={selectedEntityId ?? 'None'} detail="Audit filter context" />
       </section>
 
-      <AuditTrailPanel embedded entityId={selectedEntityId} />
+      <AuditTrailPanel embedded />
     </div>
   );
 }
@@ -1166,7 +1157,7 @@ function UtilityPanelCard({
   feedLines: import('@/components/AgentActivityFeed/AgentActivityFeed').FeedLine[];
 }) {
   const getWidthClass = (p: UtilityPanel) => {
-    if (p === 'audit' || p === 'redteam') return 'w-[min(900px,calc(100vw-32px))]';
+    if (p === 'redteam') return 'w-[min(900px,calc(100vw-32px))]';
     if (p === 'inspector' || p === 'signals' || p === 'feed') return 'w-[min(500px,calc(100vw-32px))]';
     return 'w-[min(420px,calc(100vw-32px))]';
   };
@@ -1250,12 +1241,6 @@ function UtilityPanelCard({
       {panel === 'redteam' && (
         <div className="h-[75vh] w-full max-h-[800px] -mx-5 -my-5 px-5 py-5 overflow-y-auto overflow-x-hidden rounded-[28px]">
           <RedTeamMode onClose={onClose} />
-        </div>
-      )}
-
-      {panel === 'audit' && (
-        <div className="h-[75vh] w-full max-h-[800px] -mx-5 -my-5 px-5 py-5 overflow-y-auto overflow-x-hidden rounded-[28px]">
-          <AuditTrailPanel />
         </div>
       )}
     </div>
